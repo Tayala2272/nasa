@@ -1,48 +1,79 @@
-
+import { useState, useEffect } from 'react';
 import './App.css'
+
+
+interface NextLaunch {
+  rocketName: string;
+  imageUrl: string;
+  launchSite: string;
+  launchTimePL: string;
+  launchTimeLocal: string;
+  rocketModel: string;
+  mission: string;
+}
+
+interface UpcomingLaunch {
+  id: number;
+  name: string;
+  date: string;
+  launchSite: string;
+}
+
+const API_URL = "http://localhost:3000"
 
 export default function app() {
 
+	const [nextLaunch, setNextLaunch] = useState<NextLaunch | null>(null);
+    const [upcomingLaunches, setUpcomingLaunches] = useState<UpcomingLaunch[]>([]);
+    const [astronauts, setAstronauts] = useState<string[]>([]);
+    const [apodUrl, setApodUrl] = useState<string>('');
+    const [times, setTimes] = useState({
+        polska: '00:00:00',
+        floryda: '00:00:00',
+        teksas: '00:00:00',
+        gujana: '00:00:00'
+    });
 
-	
+    useEffect(() => {
+        fetch(API_URL+'/launches/next')
+            .then(res => res.json())
+            .then(data => setNextLaunch(data));
+            
+        fetch(API_URL+'/launches/upcoming')
+            .then(res => res.json())
+            .then(data => setUpcomingLaunches(data));
+        
+        fetch(API_URL+'/iss')
+            .then(res => res.json())
+            .then(data => setAstronauts(data));
+        
+        fetch(API_URL+'/apod')
+            .then(res => res.json())
+            .then(data => setApodUrl(data.imageUrl));
+        
+        // czas
+        const updateTimes = () => {
+            const now = new Date();
+            setTimes({
+                polska: now.toLocaleTimeString('pl-PL', { timeZone: 'Europe/Warsaw' }),
+                floryda: now.toLocaleTimeString('pl-PL', { timeZone: 'America/New_York' }),
+                teksas: now.toLocaleTimeString('pl-PL', { timeZone: 'America/Chicago' }),
+                gujana: now.toLocaleTimeString('pl-PL', { timeZone: 'America/Cayenne' })
+            })
+        }
+        
+        updateTimes()
+        const interval = setInterval(updateTimes, 1000)
+        return () => clearInterval(interval)
+    }, [])
 
-	const nextLaunch = {
-		rocketName: "Falcon 9",
-		imageUrl: "https://picsum.photos/200/300",
-		launchSite: "Kennedy Space Center, Floryda",
-		launchTimePL: "6.10.2023, 14:30 CEST",
-		launchTimeLocal: "6.10.2023, 08:30 EDT",
-		rocketModel: "Falcon 9 Block 5",
-		mission: "Wyniesienie satelitów Starlink"
-	};
 
-	const upcomingLaunches = [
-		{ 
-			id: 1, 
-			name: "Starship", 
-			date: "12.10.2023, 16:00",
-			launchSite: "Boca Chica, Teksas" 
-		},
-		{ 
-			id: 2, 
-			name: "Atlas V", 
-			date: "15.10.2023, 11:20",
-			launchSite: "Cape Canaveral, Floryda" 
-		},
-		{ 
-			id: 3, 
-			name: "Soyuz MS-25", 
-			date: "18.10.2023, 09:45",
-			launchSite: "Bajkonur, Kazachstan" 
-		}
-	];
 
-	const astronauts = [
-		"Jasmin Moghbeli (NASA)",
-		"Andreas Mogensen (ESA)",
-		"Satoshi Furukawa (JAXA)",
-		"Konstantin Borisov (Roskosmos)"
-	];
+
+    if (!nextLaunch) return <div>Ładowanie...</div>;
+
+
+
 
 	return (
 		<div className="app">
@@ -56,19 +87,19 @@ export default function app() {
 				<div>
 					<div className="time-item">
 						<div className="location">Polska:</div>
-						<div className="time">11:22:32</div>
+						<div className="time">{times.polska}</div>
 					</div>
 					<div className="time-item">
 						<div className="location">Spacex + NASA, Floryda:</div>
-						<div className="time">06:22:32</div>
+						<div className="time">{times.floryda}</div>
 					</div>
 					<div className="time-item">
 						<div className="location">Spacex, Teksas:</div>
-						<div className="time">06:52:32</div>
+						<div className="time">{times.teksas}</div>
 					</div>
 					<div className="time-item">
 						<div className="location">ESA, Gujana Francuska:</div>
-						<div className="time">7:22:32</div>
+						<div className="time">{times.gujana}</div>
 					</div>
 				</div>
 			</section>
