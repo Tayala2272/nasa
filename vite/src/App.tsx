@@ -2,24 +2,35 @@ import { useState, useEffect } from 'react';
 import './App.css'
 
 
-interface NextLaunch {
-  rocketName: string;
-  imageUrl: string;
-  launchSite: string;
-  launchTimePL: string;
-  launchTimeLocal: string;
-  rocketModel: string;
-  mission: string;
-}
+// Interfaces
+	interface NextLaunch {
+	rocketName: string;
+	imageUrl: string;
+	launchSite: string;
+	launchTimePL: string;
+	launchTimeLocal: string;
+	rocketModel: string;
+	mission: string;
+	}
+	interface UpcomingLaunch {
+	id: number;
+	name: string;
+	date: string;
+	launchSite: string;
+	}
+	interface WeatherData {
+		temperature: number;
+		windspeed: number;
+		winddirection: number;
+		weathercode: number;
+		time: string;
+	}
 
-interface UpcomingLaunch {
-  id: number;
-  name: string;
-  date: string;
-  launchSite: string;
-}
 
-const API_URL = "http://localhost:3000"
+
+
+// Api URL
+	const API_URL = "http://localhost:3000"
 
 export default function app() {
 
@@ -33,6 +44,7 @@ export default function app() {
         teksas: '00:00:00',
         gujana: '00:00:00'
     });
+	const [weather, setWeather] = useState<WeatherData | null>(null)
 
     useEffect(() => {
         fetch(API_URL+'/launches/next')
@@ -83,7 +95,7 @@ export default function app() {
 
 			{/* godziny */}
 			<section className="time-section">
-				<h3>Czas:</h3>
+				<h3>Godziny:</h3>
 				<div>
 					<div className="time-item">
 						<div className="location">Polska:</div>
@@ -174,7 +186,7 @@ export default function app() {
 			<section className="today-image">
 				<h3>Dzisiejsze zdjęcie z kosmosu</h3>
 				<img 
-					src="https://picsum.photos/500/1000" 
+					src={apodUrl}
 					alt="zdjęcie kosmosu" 
 					className="space-image"
 				/>

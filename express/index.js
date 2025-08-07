@@ -1,5 +1,6 @@
 require('dotenv').config()
 const express = require('express')
+const cors = require('cors')
 
 
 // Routes
@@ -10,6 +11,13 @@ const express = require('express')
 
 
 const app = express()
+
+// cors
+    app.use(cors({
+        origin: '*', // zamienić w mvp na domene
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    }))
 
 
 // Routes
