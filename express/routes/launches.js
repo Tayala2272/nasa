@@ -22,7 +22,7 @@ const router = express.Router()
 
 
 // zmienne przechowywujące dane o startach rakiet
-    let launches = null
+    let launches = []
     let isUpdating = false
 
 
@@ -44,16 +44,16 @@ const router = express.Router()
 
 
 // funckja pomocnicza sprawdzająca czy potrzebna jest w ogóle aktualizacja danych
-    const checkCacheAndUpdateIfNeeded = () => {
+    const checkCacheAndUpdateIfNeeded = async () => {
 
         // jeśli nie ma jeszcze żadnych danych o odlotach, to aktualizuj
             if (!launches || launches.length === 0) {
-                updateCache()
+                await updateCache()
                 return
             }
 
 
-            
+
         // jeśli najnowszy start rakiety się odbył, to aktualizuj dane o odlotach
             const firstLaunch = launches[0]
             if (!firstLaunch.net) return
@@ -61,7 +61,9 @@ const router = express.Router()
             const now = moment()
             const launchTime = moment(firstLaunch.net)
             if (launchTime.isBefore(now)) {
-                updateCache();
+                updateCache().then(()=>{
+                    return
+                })
             }
     }
 
@@ -76,37 +78,43 @@ const router = express.Router()
     router.get('/next', async (req, res) => {
         try {
             // sprawdzanie, czy należy odświeżyć informacje
-                checkCacheAndUpdateIfNeeded()
-            
-            // Jeśli żadnego lotu nie znalazło to zwraca brak danych
-                if (launches.length === 0) {
-                    return res.json({
-                        rocketName: "Brak danych",
-                        imageUrl: "https://picsum.photos/seed/picsum/200/300",
-                        launchSite: "Nieznane miejsce startu",
-                        launchTimePL: "Brak daty",
-                        launchTimeLocal: "Brak daty",
-                        rocketModel: "Nieznany model",
-                        mission: "Brak misji"
-                    })
-                }
-            
-            
-            // W przeciwnym razie zwraca wszystkie informacje o locie
-                const launch = launches[0];
-                const timezone = launch.pad?.timezone || 'UTC';
+                await checkCacheAndUpdateIfNeeded()
 
-                const nextLaunch = {
-                    rocketName: launch.name || "Nieznana rakieta",
-                    imageUrl: launch.image || 'https://picsum.photos/seed/picsum/200/300',
-                    launchSite: launch.pad?.location?.name || "Nieznane miejsce startu",
-                    launchTimePL: formatDate(launch.net, 'Europe/Warsaw'),
-                    launchTimeLocal: formatDate(launch.net, timezone) + (launch.net ? ` ${timezone}` : ''),
-                    rocketModel: launch.rocket?.configuration?.full_name || "Nieznany model",
-                    mission: launch.mission?.name || 'Brak misji'
-                }
 
-                res.json(nextLaunch)
+                // Jeśli żadnego lotu nie znalazło to zwraca brak danych
+                    if (launches.length === 0) {
+                        return res.json({
+                            rocketName: "Brak danych",
+                            imageUrl: "https://picsum.photos/seed/picsum/200/300",
+                            launchSite: "Nieznane miejsce startu",
+                            launchTimePL: "Brak daty",
+                            launchTimeLocal: "Brak daty",
+                            rocketModel: "Nieznany model",
+                            mission: "Brak misji",
+                            latitude: "Brak danych",
+                            longitude: "Brak danych"
+                        })
+                    }
+                
+                
+                // W przeciwnym razie zwraca wszystkie informacje o locie
+                    const launch = launches[0];
+                    const timezone = launch.pad?.timezone || 'UTC';
+    
+                    const nextLaunch = {
+                        rocketName: launch.name || "Nieznana rakieta",
+                        imageUrl: launch.image || 'https://picsum.photos/seed/picsum/200/300',
+                        launchSite: launch.pad?.location?.name || "Nieznane miejsce startu",
+                        launchTimePL: formatDate(launch.net, 'Europe/Warsaw'),
+                        launchTimeLocal: formatDate(launch.net, timezone) + (launch.net ? ` ${timezone}` : ''),
+                        rocketModel: launch.rocket?.configuration?.full_name || "Nieznany model",
+                        mission: launch.mission?.name || 'Brak misji',
+                        latitude: launch.pad?.latitude || "Brak danych",
+                        longitude: launch.pad?.longitude || "Brak danych"
+                    }
+    
+                    res.json(nextLaunch)
+            
 
 
         } catch (error) {
@@ -123,7 +131,8 @@ const router = express.Router()
     router.get('/upcoming', async (req, res) => {
         try {
             // sprawdzanie, czy należy odświeżyć informacje
-                checkCacheAndUpdateIfNeeded()
+                await checkCacheAndUpdateIfNeeded()
+                
             
             // Pomijamy pierwszy start, bo najbliższy start zwraca route /next
                 const upcomingLaunches = launches.slice(1).map((launch, index) => ({

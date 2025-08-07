@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
                     lastFetchDate = today;
             }
 
-        res.json({ imageUrl: apodUrl })
+        res.json({ imageUrl: apod  })
     } catch (error) {
         console.error(error)
         res.status(500).json({ error: 'Błąd serwera' })
