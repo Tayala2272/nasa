@@ -1,2 +1,6 @@
-express/.env
-vite/.env
+next.js/node_modules
+next.js/.env
+
+vite.js/express/node_modules
+vite.js/vite/node_modules
+vite.js/express/.env
